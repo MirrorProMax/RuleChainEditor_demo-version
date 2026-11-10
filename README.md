@@ -156,6 +156,7 @@ python3 server.py 8000
 | `Editor.css` / `theme.css` / `liquid-glass.css` | 样式与两套主题 |
 | `server.py` | 本地服务器：静态托管 + JSON 写回 + 覆盖前备份（仅标准库） |
 | `main-config.json` | 演示配置：采购申请单 → 付款单 |
+| `docs/` | 界面截图，README 引用 |
 
 编辑器支持：顶部「打开 JSON」选任意符合格式的配置文件、创建空白配置、重新加载、
 查看原始 JSON、查看内置格式说明、配置源切换（同目录 / 相对路径 / 绝对 URL）。
