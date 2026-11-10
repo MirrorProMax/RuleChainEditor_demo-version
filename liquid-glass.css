@@ -1,0 +1,230 @@
+/* ============================================================
+   Liquid Glass 主题覆盖层（通用：Editor.html 与 Editor-liquid.html 共用）
+   加载顺序：Editor.css / Editor-liquid.css → theme.css → 本文件（最后，确保覆盖）
+   设计要点：
+   ① 把语义变量改为半透明，使所有引用 --bg/--bg2/--border 的
+      组件自然玻璃化（不破坏 name-col / fill-pending 等语义色）；
+   ② 主框架叠加 backdrop-filter 玻璃质感 + 高光描边；
+   ③ 注入动态光斑背景层，让玻璃有内容可折射。
+   不改变任何结构 / 逻辑 / 变量名，仅视觉覆盖。
+   ============================================================ */
+
+/* —— 1. 动态光斑背景层（#25 注入的 .liquid-bg） —— */
+.liquid-bg {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  background: linear-gradient(135deg, #eaf3f0 0%, #f4efe7 45%, #e8f1f5 100%);
+}
+.liquid-bg::before,
+.liquid-bg::after {
+  content: ""; position: absolute; border-radius: 50%;
+  filter: blur(70px); opacity: .78; will-change: transform;
+}
+.liquid-bg::before {
+  width: 46vw; height: 46vw; left: -8vw; top: -10vw;
+  background: radial-gradient(circle at 30% 30%, rgba(31,158,122,.55), rgba(31,158,122,0) 70%);
+  animation: lgFloat1 18s ease-in-out infinite;
+}
+.liquid-bg::after {
+  width: 40vw; height: 40vw; right: -6vw; bottom: -8vw;
+  background: radial-gradient(circle at 60% 40%, rgba(224,130,47,.45), rgba(224,130,47,0) 70%);
+  animation: lgFloat2 22s ease-in-out infinite;
+}
+@keyframes lgFloat1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(6vw,4vw)} }
+@keyframes lgFloat2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-5vw,-5vw)} }
+
+/* —— 2. 根背景透明，露出光斑层 —— */
+html, body { background: transparent !important; }
+
+/* —— 3. 语义变量半透明化（浅色 / 深色） ——
+   仅调透明度，不动色相，因此 name-col / fill-pending / src-prev 等
+   业务语义色（它们用独立 rgba，不会被 --bg 覆盖）照常保留。 */
+:root {
+  --bg:     rgba(255,255,255,.55);
+  --bg2:    rgba(255,255,255,.40);
+  --border:  rgba(28,52,42,.20);
+  --border2: rgba(28,52,42,.34);
+}
+[data-theme="dark"] {
+  --bg:     rgba(24,34,30,.52);
+  --bg2:    rgba(24,34,30,.38);
+  --border:  rgba(255,255,255,.14);
+  --border2: rgba(255,255,255,.20);
+}
+
+/* —— 4. 主框架玻璃（顶栏 / 左导航 / 内容区 / 面板 / 弹窗） —— */
+.topbar, .left, .right, .panel, .modal,
+.tb-menu-list, .cf-menu, .var-ac, .field-tab,
+.sc-stage, .rules-grid, .wysiwyg, .src-chip {
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+.topbar {
+  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.50)) !important;
+  border-bottom: 1px solid rgba(255,255,255,.55) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 6px 22px rgba(20,40,32,.12) !important;
+}
+[data-theme="dark"] .topbar {
+  background: linear-gradient(180deg, rgba(28,40,36,.72), rgba(28,40,36,.52)) !important;
+  border-bottom-color: rgba(255,255,255,.14) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 22px rgba(0,0,0,.4) !important;
+}
+.left {
+  background: rgba(255,255,255,.42) !important;
+  border-right: 1px solid rgba(255,255,255,.5) !important;
+  box-shadow: 2px 0 18px rgba(20,40,32,.10) !important;
+}
+[data-theme="dark"] .left {
+  background: rgba(28,40,36,.42) !important;
+  border-right-color: rgba(255,255,255,.12) !important;
+}
+.right { background: rgba(255,255,255,.30) !important; }
+[data-theme="dark"] .right { background: rgba(20,30,26,.30) !important; }
+.panel {
+  background: rgba(255,255,255,.40) !important;
+  border: 1px solid rgba(255,255,255,.5) !important;
+  box-shadow: 0 8px 30px rgba(20,40,32,.10), inset 0 1px 0 rgba(255,255,255,.6) !important;
+  border-radius: 14px;
+}
+[data-theme="dark"] .panel {
+  background: rgba(26,38,34,.40) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.modal {
+  background: rgba(255,255,255,.66) !important;
+  border: 1px solid rgba(255,255,255,.6) !important;
+  box-shadow: 0 24px 70px rgba(20,40,32,.28), inset 0 1px 0 rgba(255,255,255,.7) !important;
+  border-radius: 18px;
+}
+[data-theme="dark"] .modal {
+  background: rgba(26,38,34,.72) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.1) !important;
+}
+
+/* —— 5. 按钮玻璃 —— */
+.btn {
+  background: rgba(255,255,255,.42);
+  border: 1px solid var(--border2) !important;
+  box-shadow: 0 2px 10px rgba(20,40,32,.10), inset 0 1px 0 rgba(255,255,255,.7);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+}
+/* ★性能（2026-11-05）：静态表每行一个删除按钮，全表可达上千个；逐按钮 blur 会生成
+   同等数量的合成层，滚动时反复重采样。行内按钮只保留底色与描边，玻璃仍给工具条、
+   弹窗、选项卡等少量按钮。 */
+.static-table .btn, .st-ops .btn {
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.btn:hover { box-shadow: 0 4px 16px rgba(31,158,122,.25), inset 0 1px 0 rgba(255,255,255,.8) !important; transform: translateY(-1px); }
+.btn.primary { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
+[data-theme="dark"] .btn {
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.20) !important;
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+[data-theme="dark"] .btn:hover { box-shadow: 0 4px 16px rgba(46,199,154,.35), inset 0 1px 0 rgba(255,255,255,.18) !important; }
+
+/* —— 6. 表格：仅表头（sticky）轻玻璃，单元格保持透明透出面板玻璃，避免逐行 blur 卡顿；
+        语义色（name-col / fill-pending / src-prev / src-up）不受影响 —— */
+.static-table th, table.rules th {
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border-color: var(--border) !important;
+}
+[data-theme="dark"] .static-table th, [data-theme="dark"] table.rules th {
+  border-color: rgba(255,255,255,.16) !important;
+}
+.static-table td, table.rules td { border-color: var(--border) !important; }
+
+/* —— 7. 浮层 / 标签玻璃 —— */
+.tb-menu-list, .cf-menu, .var-ac, .field-tab {
+  background: rgba(255,255,255,.55) !important;
+  border: 1px solid rgba(255,255,255,.6) !important;
+  box-shadow: 0 12px 36px rgba(20,40,32,.18), inset 0 1px 0 rgba(255,255,255,.7) !important;
+  border-radius: 12px;
+}
+[data-theme="dark"] .tb-menu-list, [data-theme="dark"] .cf-menu,
+[data-theme="dark"] .var-ac, [data-theme="dark"] .field-tab {
+  background: rgba(26,38,34,.70) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1) !important;
+}
+.src-chip {
+  background: rgba(255,255,255,.50) !important;
+  border: 1px solid rgba(255,255,255,.6) !important;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+[data-theme="dark"] .src-chip {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+/* —— 拖动落位指示（#46）：上面 .field-tab 的玻璃阴影带 !important，会把 Editor.css 里的
+   inset 落位边整条盖掉（拖起来看不到「会插到哪」）。这里用同等优先级 + !important 补回：
+   琥珀色落位边 + 原玻璃底阴影，纵向（左导航上/下）与横向（选项卡左/右）各一套，深色同构。 */
+:root {
+  --glass-tab-shadow: 0 12px 36px rgba(20,40,32,.18), inset 0 1px 0 rgba(255,255,255,.7);
+}
+[data-theme="dark"] {
+  --glass-tab-shadow: 0 12px 36px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1);
+}
+.field-list .field-tab.drop-above { box-shadow: inset 0 3px 0 var(--amber), var(--glass-tab-shadow) !important; }
+.field-list .field-tab.drop-below { box-shadow: inset 0 -3px 0 var(--amber), var(--glass-tab-shadow) !important; }
+.field-tabs .field-tab.drop-before { box-shadow: inset 3px 0 0 var(--amber), var(--glass-tab-shadow) !important; }
+.field-tabs .field-tab.drop-after { box-shadow: inset -3px 0 0 var(--amber), var(--glass-tab-shadow) !important; }
+
+/* —— 8. 选中环节：保留强锚点语义，叠加轻玻璃 —— */
+.sc-stage.sc-on {
+  border: 2px solid var(--amber) !important;
+  background: transparent !important;
+  color: var(--amber) !important;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+[data-theme="dark"] .sc-stage.sc-on { border-color: var(--amber) !important; background: transparent !important; color: var(--amber) !important; }
+
+/* —— 9. 编辑区 / 静态表单元格 / 弹窗内输入控件玻璃 ——
+   ★性能（2026-11-05）：静态表单元格可达上万（1,508 行 = 9,048 格）。逐格
+   backdrop-filter 与该数量同级的合成层是静态表卡顿的主因，且与第 6 节
+   「单元格保持透明透出面板玻璃、避免逐行 blur 卡顿」的设计意图直接矛盾。
+   这里给单元格只留半透明底色 + 描边，玻璃由面板大容器提供；弹窗输入控件数量
+   极少，保留 blur。 */
+.st-cell {
+  background: rgba(255,255,255,.45) !important;
+  border: 1px solid rgba(255,255,255,.5) !important;
+}
+.modal input, .modal textarea, .modal select {
+  background: rgba(255,255,255,.45) !important;
+  border: 1px solid rgba(255,255,255,.5) !important;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.wysiwyg { background: rgba(255,255,255,.45) !important; border: none !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+[data-theme="dark"] .st-cell,
+[data-theme="dark"] .modal input, [data-theme="dark"] .modal textarea, [data-theme="dark"] .modal select {
+  background: rgba(255,255,255,.08) !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
+[data-theme="dark"] .wysiwyg { background: rgba(255,255,255,.08) !important; border-color: transparent !important; }
+
+/* —— 10. 尊重「减少动态效果」系统偏好 —— */
+@media (prefers-reduced-motion: reduce) {
+  .liquid-bg::before, .liquid-bg::after { animation: none !important; }
+}
+
+/* —— 11. 选中态统一：橙色边框（不填充），覆盖第 7 节白底/白边 !important —— */
+.field-tab.active,
+.field-tabs .field-tab.active {
+  border: 2px solid var(--amber) !important;
+  background: transparent !important;
+  color: var(--amber) !important;
+  font-weight: 700;
+}
+.field-tab.active .ft-main, .field-tab.active .ft-sub { color: var(--amber) !important; }
+[data-theme="dark"] .field-tab.active,
+[data-theme="dark"] .field-tabs .field-tab.active { border-color: var(--amber) !important; }
+
+/* —— 12. 面板内选项卡（MD编辑器 / 输出字段）玻璃化 —— */
+.ptab-btn { background: rgba(255,255,255,.42) !important; border: 1px solid var(--border2) !important;
+  backdrop-filter: blur(10px) saturate(150%); -webkit-backdrop-filter: blur(10px) saturate(150%); }
+.ptab-btn.on { background: transparent !important; border-color: var(--amber) !important; color: var(--amber) !important; }
+[data-theme="dark"] .ptab-btn { background: rgba(255,255,255,.10) !important; border-color: rgba(255,255,255,.20) !important; color: var(--text); }
+[data-theme="dark"] .ptab-btn.on { background: transparent !important; border-color: var(--amber) !important; color: var(--amber) !important; }

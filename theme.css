@@ -1,0 +1,65 @@
+/* ============================================================
+   主题：清爽浅色（青绿 + 橙）
+   覆盖层级：位于 Editor.css 之后，仅覆盖「语义变量 + 少量组件微调」，
+   基础结构与逻辑不变。换其它风格只需替换本文件（例如改回墨蓝/暗色）。
+   ============================================================ */
+:root {
+  --bg: #ffffff; --bg2: #f3f7f5; --border: #e1e8e4; --border2: #cad6cf;
+  --text: #1d2b26; --text2: #5c6b63; --accent: #1f9e7a; --accent-bg: #e7f6ef;
+  --warn: #d2493a; --warn-bg: #fdecea; --ok: #2e8b57; --ok-bg: #e7f4ec;
+  --amber: #e0822f; --amber-bg: #fdf0e2; --accent2: #e0822f; --bg3: #fbeede;
+}
+
+.topbar { box-shadow: 0 1px 0 rgba(31,158,122,.06), 0 2px 12px rgba(0,0,0,.05); }
+.left { box-shadow: 2px 0 12px rgba(0,0,0,.03); }
+.sc-stage, .rules-grid, .mode-switch, .wysiwyg, .btn, .field-tab { border-radius: 10px; }
+.sc-stage { box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.sc-stage:hover { box-shadow: 0 3px 12px rgba(31,158,122,.16); transform: translateY(-1px); }
+
+/* —— 选中环节：在清爽浅色基础上显著加强 —— */
+/* ★右侧 29px 预留已移除（2026-11-05）：垃圾桶由 absolute 改为流内元素后，右padding 只需与左对称的 11px
+   （2px 边框比常规态多 1px，故 12px→11px 补偿尺寸不跳动），否则选中态模式徽章右侧会空出一段。 */
+.sc-stage.sc-on {
+  background: transparent;
+  border-color: var(--amber) !important;
+  border-width: 2px !important;
+  padding: 7px 11px;
+  color: var(--amber);
+  box-shadow:
+    0 0 0 3px var(--amber-bg),                 /* 外圈琥珀光晕 */
+    0 6px 18px rgba(224,130,47,.22);           /* 更强投影，明显浮起 */
+}
+.sc-stage.sc-on .sc-label { font-weight: 800; color: var(--amber); }   /* 标签更深更粗 */
+
+.btn:hover { box-shadow: 0 2px 10px rgba(31,158,122,.16); transform: translateY(-1px); }
+.rules-grid { box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+.wysiwyg:focus { box-shadow: 0 0 0 3px var(--accent-bg); }
+.btn, .sc-stage, .ms-btn, .tb-item, .src-chip, .field-tab { transition: all .15s ease; }
+
+/* ───────────────────────────────────────────────────────────
+   夜间模式（#23）：在「清爽浅色」基础上反转。
+   实际主题由 <html data-theme="dark"> 触发；「自动」模式下由 JS 按
+   系统 prefers-color-scheme 或本地时间（06:00–18:00 为白天）决定。
+   仅覆盖语义变量 + 几处硬编码浮层/选中态，结构与逻辑不变。
+   ─────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg: #16201c; --bg2: #1f2a25; --border: #2e3a34; --border2: #3f4d45;
+  --text: #e7efea; --text2: #9fb1a8; --accent: #2ec79a; --accent-bg: #143329;
+  --warn: #ff6f61; --warn-bg: #3a2420; --ok: #4cd07f; --ok-bg: #173326;
+  --amber: #f4a558; --amber-bg: #3a2c1b; --accent2: #f4a558; --bg3: #3a2c1b;
+}
+/* 选中环节：暗底上用更深实的青绿框 + 亮青文字，保持「一眼可见」 */
+[data-theme="dark"] .sc-stage.sc-on {
+  background: transparent;
+  border-color: var(--amber) !important;
+  color: var(--amber);
+  box-shadow:
+    0 0 0 3px var(--amber-bg),
+    0 6px 18px rgba(244,165,88,.28);
+}
+[data-theme="dark"] .sc-stage.sc-on .sc-label { color: var(--amber); }
+/* 变量补全浮层原硬编码白底，暗色下反转为深底 */
+[data-theme="dark"] .var-ac { background: #22302a; border-color: var(--border2); box-shadow: 0 4px 16px rgba(0,0,0,.45); }
+[data-theme="dark"] .var-ac-item { color: var(--text); }
+[data-theme="dark"] .var-ac-item.sel { background: rgba(46,199,154,.20); }
+[data-theme="dark"] .var-ac-empty { color: var(--text2); }
