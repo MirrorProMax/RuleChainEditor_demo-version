@@ -61,7 +61,7 @@ def is_passthrough_decl(fd):
     return (not r.get("条件")) and out.get("类型") == "变量" and out.get("字段") == _cur_field
 
 
-_cur_field = None  # is_passthrough_decl 需要当前字段名（逐字段置入）
+_cur_field = None  # is_passthrough_decl 需要当前对象键（逐字段置入）
 
 
 def collect_refs(node, refs):
@@ -157,7 +157,7 @@ def main():
             if fd.get("api_key_name") is None:
                 if is_passthrough_decl(fd):
                     if um.get(name, (None,))[0] is None:
-                        W(f"{sk}.{name}：纯透传且全链未标注键（回退字段名）")
+                        W(f"{sk}.{name}：纯透传且全链未标注键（回退对象键）")
                 else:
                     E(f"{sk}.{name}：计算型输出字段缺 api_key_name（键必须在诞生处声明）")
 

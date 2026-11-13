@@ -5,6 +5,7 @@
     --text: #1f2329; --text2: #646a73; --accent: #185fa5; --accent-bg: #e6f1fb;
     --warn: #a32d2d; --warn-bg: #fcebeb; --ok: #3b6d11; --ok-bg: #eaf3de;
     --amber: #854f0b; --amber-bg: #faeeda;
+    --dup: #b8860b;   /* 重复目标键标黄（键映射模式，2026-11-12 定） */
   }
   /* ─── CSS 1. 全局布局与顶栏 ─── */
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,7 +29,9 @@
      导航类例外：面板视图选项卡（.ptab-nav）、查表选项卡滚动箭头（.ft-nav）保持可点。
      div 类交互（胶囊预览、环节/字段/文档/静态表 tab、菜单项等）由 JS 捕获层按白名单拦截。 */
   body.readonly .panel :is(input, textarea, select, button),
-  body.readonly .left :is(input, textarea, select, button) { pointer-events: none; }
+  body.readonly .left :is(input, textarea, select, button):not(.nav-tab) { pointer-events: none; }
+  /* 侧边栏板块选项卡放行（用户 2026-11-13 定）：切换查看板块是导航动作，只读态也允许 */
+  body.readonly .left .nav-tab { pointer-events: auto; }
   body.readonly .panel .ptab-nav button,
   body.readonly .panel .ft-nav button { pointer-events: auto; }
   /* 静态表搜索框放行（用户 2026-11-07 定）：回车/失焦只做视图层过滤，不改数据 */
@@ -55,7 +58,20 @@
   .tb-sep { height: 1px; background: var(--border); margin: 4px 2px; }
   /* ─── CSS 2. 左导航 · 转换环节链 ─── */
   .layout { display: flex; height: calc(100vh - 52px); }
-  .left { width: 240px; min-width: 240px; background: var(--bg); border-right: 1px solid var(--border); overflow-y: auto; }
+  .left { width: 240px; min-width: 240px; background: var(--bg); border-right: 1px solid var(--border);
+          display: flex; flex-direction: column; overflow: hidden; }
+  /* ★侧边栏顶部三大板块单选选项卡（用户 2026-11-13 定）：冻结在侧边栏顶部、不随清单滚动；
+     flex:0 0 auto 使其脱离 .nav-body 的滚动流，天然冻结。
+     形态=一体式分段选项卡（用户 2026-11-13 定：不要三个独立按钮）——外层容器统一描边圆角，
+     格子等宽拼合、共享分隔线，选中格填充底色，非选中格透明无边框。 */
+  .nav-tabs { flex: 0 0 auto; display: flex; margin: 8px 8px 7px; padding: 0; border: 1px solid var(--border2); border-radius: 7px; overflow: hidden; background: var(--bg); }
+  .nav-tab { flex: 1 1 0; min-width: 0; padding: 5px 2px; font-size: 12px; text-align: center; white-space: nowrap;
+             border: none; border-radius: 0; background: transparent; color: var(--text2); cursor: pointer; }
+  .nav-tab + .nav-tab { border-left: 1px solid var(--border2); }   /* 格间共享分隔线 */
+  .nav-tab:hover { color: var(--text); background: var(--bg2); }
+  .nav-tab.active { color: var(--amber); font-weight: 600; background: var(--bg2); box-shadow: inset 0 -2px 0 var(--amber); }
+  /* 板块清单滚动区：只有这一层滚动，选项卡始终可见 */
+  .nav-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
   .right { flex: 1; overflow-y: auto; background: var(--bg2); scrollbar-gutter: stable; }
   .section-title { font-size: 12px; color: var(--text2); padding: 12px 14px 6px; font-weight: 500; }
   /* 文档集合：标题行右侧常驻「+ 增加文档」；编辑弹窗内改名提示 */
@@ -76,8 +92,9 @@
                     border-width: 2px !important; padding: 7px 11px; color: var(--amber);
                     box-shadow: 0 0 0 2px var(--amber-bg); }
   .sc-stage.sc-on .sc-label { font-weight: 700; }
-  .sc-stage.sc-boundary { border-style: solid; border-color: var(--ok, #2e8b57); background: var(--ok-bg, #e7f4ec); color: var(--ok, #2e8b57);
-                          justify-content: center; text-align: center; }
+  /* ★开始/结束边界块不用颜色特殊样式（用户 2026-11-12 定）：避免绿色被误读为焦点/选中态；
+     但文字居中保留（用户 2026-11-13 定）——居中即与正式环节（左对齐+说明+模式标签）一眼区分，又不抢选中态语义。 */
+  .sc-stage.sc-bd { justify-content: center; text-align: center; }
   .sc-stage .sc-label { font-weight: 600; }
   /* ★环节作用标签（用户 2026-11-05）：原居中的 ↓ 箭头改为环节「说明」文本，描述这个环节的作用。
      仅「环节1..N」渲染；开始/结束边界块不渲染该标签，只显示「开始 / 结束」。
@@ -121,10 +138,7 @@
   /* 选中时仅高亮箭头行本身（含序号）：独立圆角方框，不框输入/输出节点 */
   .sc-arrow.sc-on { background: transparent; border-color: var(--amber) !important; border-radius: 8px; color: var(--amber); }
   .sc-arrow.sc-on .sc-num { color: var(--amber); }
-  .sc-arrow.sc-boundary { background: var(--ok-bg, #e7f4ec); border-style: solid; border-color: var(--ok, #2e8b57); color: var(--ok, #2e8b57); }
-  .sc-arrow.sc-boundary .sc-num { color: var(--ok, #2e8b57); }
   .sc-arrow .sc-mid { font-size: 11px; color: var(--text2); margin: 0 4px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-  .sc-arrow.sc-boundary .sc-mid { color: var(--ok, #2e8b57); }
   .sc-ins { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text2); cursor: pointer; }
   .sc-ins:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
   /* ─── CSS 3. 模式切换条 · 提示词编辑器（编辑/预览 双栏） ─── */
@@ -144,12 +158,6 @@
   .ptab-btn { font-size: 12px; padding: 5px 18px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg2); color: var(--text2); cursor: pointer; transition: color .12s, border-color .12s; }
   .ptab-btn:hover:not(.on) { color: var(--amber); }
   .ptab-btn.on { border-color: var(--amber); color: var(--amber); font-weight: 600; background: transparent; }
-  /* 模式条上方留白收窄（原 panel padding-top 16 + 模式条 margin-top 8 = 24px，条本身仅 315px 宽居中，顶部一片空）。
-     ○实现细节：模式条恒为面板首个子元素（提示词/过滤表/检测表/单规则表/短路表五个渲染分支皆先 h += modeSwitchBar），
-       故用 :has() 只挑「首元素即模式条」的面板把顶部内边距压到 10px；
-       开始/结束（首元素为 markdown 编辑器）与 SOP 页、静态表页不受影响，保持原 16px。
-     ○兼容：:has() 在 Edge/Chrome 105+、Safari 15.4+ 均支持；不支持时该规则整条失效 → 退回 16px，不破坏布局。 */
-  .panel:has(> .mode-switch:first-child) { padding-top: 10px; }
   /* 单区所见即所得编辑器：规范值暂存 textarea（隐藏，不被看到）；其余双栏 CSS 已随双栏编辑器移除 */
   .prompt-ta-hidden { display: none; }
   /* ─── CSS 3.1 提示词模式 · 输出字段区（#29 / #30 / 双向一致 / #35 真表格） ─── */
@@ -157,13 +165,69 @@
   .outdef-table { width: 100%; border-collapse: collapse; font-size: 12px; }
   .outdef-table th { text-align: left; font-weight: 600; color: var(--text2); padding: 4px 6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .outdef-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  .outdef-table th:nth-child(1), .outdef-table td:nth-child(1) { width: 22%; }
-  .outdef-table th:nth-child(2), .outdef-table td:nth-child(2) { width: 22%; }
-  .outdef-table th:nth-child(3), .outdef-table td:nth-child(3) { width: auto; }
-  .outdef-table th:nth-child(4), .outdef-table td:nth-child(4) { width: 56px; text-align: center; }
+  /* 列宽随列序（键层→字段名→键→说明→删除，2026-11-12 键层前置）：窄列定宽、说明列吃掉剩余宽度。
+     只读的「输入字段」视图（.ifview-table，无抓手列）用这套 5 列宽度；可编辑的「输出字段」定义表
+     （.outdef-def-table）最左多一列抓手，改用下面那套 6 列宽度覆盖。 */
+  .outdef-table:not(.outdef-def-table) th:nth-child(1), .outdef-table:not(.outdef-def-table) td:nth-child(1) { width: 92px; }
+  .outdef-table:not(.outdef-def-table) th:nth-child(2), .outdef-table:not(.outdef-def-table) td:nth-child(2) { width: 24%; }
+  .outdef-table:not(.outdef-def-table) th:nth-child(3), .outdef-table:not(.outdef-def-table) td:nth-child(3) { width: 24%; }
+  .outdef-table:not(.outdef-def-table) th:nth-child(4), .outdef-table:not(.outdef-def-table) td:nth-child(4) { width: auto; }
+  .outdef-table:not(.outdef-def-table) th:nth-child(5), .outdef-table:not(.outdef-def-table) td:nth-child(5) { width: 60px; text-align: center; }
+  /* 定义表 6 列：抓手 26px · 键层 92px · 字段名 24% · 键 24% · 说明 auto · 删除 60px */
+  .outdef-def-table th:nth-child(1), .outdef-def-table td:nth-child(1) { width: 26px; }
+  .outdef-def-table th:nth-child(2), .outdef-def-table td:nth-child(2) { width: 92px; }
+  .outdef-def-table th:nth-child(3), .outdef-def-table td:nth-child(3) { width: 24%; }
+  .outdef-def-table th:nth-child(4), .outdef-def-table td:nth-child(4) { width: 24%; }
+  .outdef-def-table th:nth-child(5), .outdef-def-table td:nth-child(5) { width: auto; text-align: left; }
+  .outdef-def-table th:nth-child(6), .outdef-def-table td:nth-child(6) { width: 60px; text-align: center; }
+  /* 抓手列（用户 2026-11-13 定）：长按拖拽排序的唯一起点，无文字、不可聚焦；只读态隐藏但保留列宽 */
+  .outdef-table .outdef-grip { cursor: grab; user-select: none; text-align: center; color: var(--text2);
+                               padding-left: 2px; padding-right: 2px; }
+  .outdef-table .outdef-grip:active { cursor: grabbing; }
+  .outdef-table .grip-dots { font-size: 11px; letter-spacing: -1px; opacity: .55; }
+  body.readonly .outdef-table .outdef-grip { visibility: hidden; }
   .outdef-table .inp { width: 100%; box-sizing: border-box; margin-top: 0; }
+  .outdef-table .km-layer-sel { width: 100%; box-sizing: border-box; }
   .outdef-table .btn.danger.small { margin: 0 auto; }
+  /* ★同层重复警示（用户 2026-11-13 定）：输出字段「字段名」/「键」与同层其他行重复 → 输入框标红。
+     层不同不算重复（判重在 renderOutputFieldDefs 里按 层+名 / 层+键 分桶计数）。 */
+  .outdef-table .inp.dup-warn { border-color: var(--danger, #c0392b) !important; color: var(--danger, #c0392b);
+                                 background: rgba(192, 57, 43, .07); }
   .outdef-empty { padding: 8px 6px; color: var(--text2); font-size: 12px; }
+  /* 「输入字段」选项卡（2026-11-11）：只读检视上一环节传入字段；缺项占位弱化显示（4 列，无删除列） */
+  .ifview-table th:nth-child(1), .ifview-table td:nth-child(1) { width: 92px; }
+  .ifview-table th:nth-child(2), .ifview-table td:nth-child(2) { width: 26%; }
+  .ifview-table th:nth-child(3), .ifview-table td:nth-child(3) { width: 26%; }
+  .ifview-table th:nth-child(4), .ifview-table td:nth-child(4) { width: auto; text-align: left; }
+  .ifview-table .ifview-blank { color: var(--text2); }
+  /* ─── 键映射模式（#66，用户 2026-11-11 定）：三列改名表（值全透传） ───
+     ○布局与规则表同构（2026-11-12 用户定「标题行冻结」）：模式条进 .rules-view-head 冻结，
+       表格进 .rules-view-body 单一滚动容器（边框/圆角/背景由该容器提供），thead sticky top 0 钉住。 */
+  .panel.panel-rules .km-table thead { position: sticky; top: 0; z-index: 5; }
+  .panel.panel-rules .km-table thead th { box-shadow: 0 1px 0 var(--border); }   /* border-collapse 下 sticky 底边偶发丢失，补同色阴影线 */
+  .km-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .km-table th { text-align: left; font-weight: 600; color: var(--text2); padding: 7px 10px; border-bottom: 1px solid var(--border); background: var(--bg2); white-space: nowrap; }
+  .km-table td { padding: 5px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .km-table tr:last-child td { border-bottom: none; }
+  .km-idx { width: 36px; text-align: center; color: var(--text2); }
+  .km-name { white-space: nowrap; }
+  .km-key { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px; }
+  .km-ro { color: var(--text2); }
+  .km-nolabel { color: var(--text3, #a0a0a0); font-style: italic; }
+  .km-table .inp { margin-top: 0; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px; }
+  /* 目标键重复：重复项的字体整行标黄（用户 2026-11-12 定；仅提示不拦截——多字段汇到同一键是合法场景） */
+  .km-table tr.km-dup td,
+  .km-table tr.km-dup td.km-ro,
+  .km-table tr.km-dup td .km-nolabel { color: var(--dup); }
+  .km-table tr.km-dup td .inp { color: var(--dup); }
+  .km-empty { padding: 10px; color: var(--text2); font-size: 12px; text-align: center; }
+  /* 层选择器（#2013，用户 2026-11-12 定）：单据头 / 明细行 两态，只读态去边框融进单元格；
+     未改名的行不写层（层挂在改名条目上），该格显示「—」灰字 */
+  .km-layer { white-space: nowrap; }
+  .km-layer-sel { font-size: 11.5px; padding: 2px 4px; border: 1px solid var(--border); border-radius: 4px;
+                  background: var(--bg); color: var(--text); }
+  .km-layer-sel:disabled { color: var(--text2); background: transparent; border-color: transparent; }
+  .km-layer-na { color: var(--text3, #a0a0a0); }
   /* 代码行同样折行（曾 white-space:pre → 长行撑出横向滚动条，与「预览区不横向滚动」冲突）；
      保留前导缩进（pre-wrap），超长无空格串由 overflow-wrap:anywhere 断开 */
   .prompt-preview .md-codeline { font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
@@ -177,7 +241,9 @@
   /* ─── CSS 3.2 提示词编辑器 · 单区所见即所得（渲染+编辑合一，仅 prompt 页；SOP 仍双栏） ─── */
   .wysiwyg-wrap { display: flex; align-items: stretch; margin-top: 8px; max-height: 460px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); }
   .wysiwyg-wrap:focus-within { border-color: var(--accent); }
-  .ln-gutter { flex: 0 0 auto; min-width: 42px; padding: 10px 8px 10px 0; text-align: right; color: var(--text2); font-size: 12px; line-height: 1.7; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; user-select: none; overflow: hidden; background: var(--bg2); border-right: 1px solid var(--border); white-space: pre; }
+  .ln-gutter { flex: 0 0 auto; min-width: 42px; text-align: right; color: var(--text2); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; user-select: none; overflow: hidden; position: relative; background: var(--bg2); border-right: 1px solid var(--border); }
+  .ln-inner { position: absolute; top: 0; left: 0; right: 0; }
+  .ln-num { position: absolute; right: 8px; line-height: 1.7; white-space: nowrap; }
   .wysiwyg { flex: 1 1 auto; margin-top: 0; min-height: 340px; box-sizing: border-box; padding: 10px 12px; border: none; border-radius: 0; background: transparent; overflow-y: auto; outline: none; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
   .wysiwyg:focus { border-color: transparent; }
   .wysiwyg:empty::before { content: "（点击此处开始编写提示词，所见即所得，直接改）"; color: var(--text2); }
@@ -206,6 +272,9 @@
   .field-tab:hover { background: var(--bg2); }
   .field-tab.active { background: transparent; color: var(--amber); border: 1px solid var(--amber); }
   .field-tab .ft-main { display: block; overflow: hidden; white-space: nowrap; font-size: 12.5px; font-weight: 500; }
+  /* 层行（用户 2026-11-12 定）：vstack(层, 字段名, 键) 的首行，最小字号弱化显示 */
+  .field-tab .ft-layer { display: block; overflow: hidden; white-space: nowrap; font-size: 10px; color: var(--text2); opacity: .8; font-weight: 400; }
+  .field-tab.active .ft-layer { color: var(--amber); opacity: .72; }
   .field-tab.active .ft-main { color: var(--amber); }
   .field-tab .ft-sub { display: block; overflow: hidden; white-space: nowrap; font-size: 11px; color: var(--text2); font-weight: 400; }
   .field-tab.active .ft-sub { color: var(--amber); opacity: 0.75; }
@@ -225,7 +294,7 @@
   .field-tabs .field-tab.detect-tab .ft-main { color: var(--text2); }
   .field-tabs .field-tab.detect-tab .ft-vstack { align-items: flex-start; }
   /* 输出字段悬停说明气泡：把说明性文字从内联改为 hover 气泡，避免界面冗长 */
-  .field-tip-bubble { position: fixed; z-index: 9999; max-width: 440px; padding: 8px 11px; border-radius: 8px;
+  .field-tip-bubble { position: fixed; z-index: 100001; max-width: 440px; padding: 8px 11px; border-radius: 8px;
     background: var(--bg2); color: var(--text); border: 1px solid var(--border2);
     box-shadow: 0 6px 22px rgba(0,0,0,.18); font-size: 12px; line-height: 1.55;
     white-space: pre-wrap; word-break: break-word; pointer-events: none; }
@@ -237,12 +306,18 @@
     border-radius: 8px; font-size: 12.5px; color: var(--text2); background: transparent;
     cursor: pointer; user-select: none; white-space: nowrap; }
   .field-tabs .ft-add:hover { border-color: var(--accent); color: var(--text); background: var(--bg2); }
-  /* 拖动排序：抓手光标、拖起半透明、落点左右边框指示 */
-  .field-tabs .field-tab[draggable="true"] { cursor: grab; }
-  .field-tabs .field-tab[draggable="true"]:active { cursor: grabbing; }
-  .field-tabs .field-tab.dragging { opacity: .38; }
+  /* 输出字段定义顺序：长按拖拽排序（用户 2026-11-13 定）——抓手光标、拖起半透明、落点左右内阴影。
+     不加任何说明文字/图标：拖拽态本身就是反馈，界面不额外堆提示。 */
+  .field-tabs .field-tab[data-field] { cursor: grab; user-select: none; }
+  .field-tabs .field-tab.lp-dragging { opacity: .38; cursor: grabbing; }
   .field-tabs .field-tab.drop-before { box-shadow: inset 3px 0 0 var(--amber); }
   .field-tabs .field-tab.drop-after { box-shadow: inset -3px 0 0 var(--amber); }
+  body.lp-holding, body.lp-holding * { cursor: grabbing; user-select: none; }
+  /* 提示词「输出字段」表格：行同样可长按拖拽，落点用上下内阴影指示（与左导航纵向排序同一视觉语言） */
+  .outdef-table .outdef-row[data-field] { cursor: grab; }
+  .outdef-table .outdef-row.lp-dragging { opacity: .38; }
+  .outdef-table .outdef-row.drop-before td { box-shadow: inset 0 2px 0 var(--amber); }
+  .outdef-table .outdef-row.drop-after td { box-shadow: inset 0 -2px 0 var(--amber); }
   /* 左导航拖动排序（纵向）：抓手光标、拖起半透明、落点上下边框指示（文档与静态表共用一套，#46） */
   .field-list .field-tab[draggable="true"] { cursor: grab; }
   .field-list .field-tab[draggable="true"]:active { cursor: grabbing; }
@@ -286,8 +361,7 @@
      ○兼容：用 .right:has(> .panel.panel-fill) 触发，:has() 在 Safari 15.4+/Chrome 105+ 支持；不支持时整条失效、退回旧布局（编辑器回到 max-height 上限），不破坏。 */
   .right:has(> .panel.panel-fill) { display: flex; flex-direction: column; }
   .panel.panel-fill { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
-  /* 头部元素（模式条/标题/描述/特殊规则/选项卡条）不伸缩，固定占顶 */
-  .panel.panel-fill > .mode-switch,
+  /* 头部元素（标题/描述/特殊规则/选项卡条）不伸缩，固定占顶（模式条已移入编辑弹窗，2026-11-13） */
   .panel.panel-fill > h2,
   .panel.panel-fill > .desc,
   .panel.panel-fill > .stage-special,
@@ -311,13 +385,15 @@
      ○表头行 sticky top 冻结；左#列 / 右输出列 sticky left/right 横向冻结；三者同一滚动容器，互不窜位。
      ○兼容：.right:has(> .panel.panel-rules) 触发 flex，:has() 在 Safari 15.4+/Chrome 105+ 支持；不支持时整条失效、退回旧布局。 */
   .right:has(> .panel.panel-rules) { display: flex; flex-direction: column; }
-  .panel.panel-rules { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
+  .panel.panel-rules { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden;
+                       padding-top: 10px; }   /* 规则表视图顶部留白与提示词模式对齐（用户 2026-11-11 定）：
+                       面板首元素是 .rules-view，再叠加首行工具条 margin-top 14px，此处压回 10px，
+                       顶部总留白 = 10px 与提示词模式一致 */
   .rules-view { display: flex; flex-direction: column; min-height: 0; height: 100%; }
   .rules-view-head { flex: 0 0 auto; }
   .rules-view-body { flex: 1 1 auto; min-height: 0; position: relative; overflow: auto; scrollbar-gutter: stable;
                      border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
-  /* 冻结头内的元素不伸缩 */
-  .rules-view-head > .mode-switch,
+  /* 冻结头内的元素不伸缩（模式条已移入编辑弹窗，2026-11-13） */
   .rules-view-head > .scroll-wrap,
   .rules-view-head > .toolbar,
   .rules-view-head > .act-banner,
@@ -338,10 +414,12 @@
   .stage-special pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; overflow-x: hidden; }
   .stage-special .md-h3, .stage-special .md-h4 { font-size: 12.5px; margin: 3px 0; }
   .stage-special code { background: var(--bg2); padding: 0 4px; border-radius: 3px; font-size: 11.5px; }
-  .toolbar { display: flex; gap: 8px; align-items: center; margin: 14px 0 12px; flex-wrap: wrap; }
-  /* 工具条单行布局：左「上一环节传入的条件字段」/ 中「模式单选器」/ 右「添加规则按钮」（2026-11-07 用户定） */
-  .toolbar .ms-center { flex: 1 1 auto; display: flex; justify-content: center; min-width: 0; }
-  .toolbar .ms-center > .mode-switch { margin: 0; }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin: 14px 0 12px; flex-wrap: wrap; }  /* 首行工具条：顶部间距由 .panel.panel-rules 的 padding-top 10px 统一给（用户 2026-11-11 定），不再叠加 */
+  .rules-view-head > .toolbar:first-child { margin-top: 0; }
+  /* 模式条已移入「编辑环节」弹窗（2026-11-13 用户定：主面板不放切换条防误触），原工具条中部 ms-center 布局随移除。
+     ★添加按钮恒贴右（用户 2026-11-13 定）：原先靠中部 ms-center 的 flex:1 撑开，撑开物移除后按钮会紧跟左侧条件字段按钮；
+     改用 margin-left:auto 把它钉在最右，任何模式下（含条件字段按钮被隐藏、只剩一个按钮）都居右。 */
+  .toolbar > .btn.primary { margin-left: auto; }
   /* ★设计标准：规则表 = 每行「多个输入字段条件(AND) + 1 输出」；三栏分离布局——左固定(#) / 中横向滚动(条件列) / 右固定(输出+操作)。
      【本次修复】单一全宽滚动容器 + sticky 冻结列 会导致「滚动条溢出到冻结列 + 阴影脱离容器」；现改为三栏各自独立 table，
      仅中栏可横向滚动 → scrollbar 只在条件列下方、永不压到冻结列；阴影贴中栏边缘随其 scroll 自然跟随、回弹被中栏 clip 约束。 */
@@ -365,6 +443,9 @@
   table.rules-left th.col-num, table.rules-right th.col-out, table.rules-right th.col-op { background: var(--bg2); font-weight: 500; font-size: 12px; color: var(--text2); padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
   table.rules th { background: var(--bg2); font-weight: 500; font-size: 12px; color: var(--text2); padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
   table.rules th .th-main { font-size: 12px; font-weight: 500; color: var(--text); }
+  /* ★层行（用户 2026-11-12 定：凡渲染「中文名+键」处都要带「层」）：表头三行 vstack 的首行，
+     弱化到最小字号——只做归属提示（单据头/明细行），不与字段名争视觉主次。 */
+  table.rules th .th-layer { font-size: 10px; font-weight: 400; color: var(--text2); opacity: .75; line-height: 1.3; }
   /* ★统一规范：th-sub 永远占位（即使无 API Key Name 也渲染空 div），min-height 预留一行高，
      保证所有条件列头双行等高、格式一致（不再因缺 KeyName 而塌成单行）。line-height 同步锁定，
      填满/空槽视觉高度一致。 */
@@ -499,6 +580,8 @@
               border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
               color: var(--accent); white-space: nowrap; }
   .var-chip .var-chip-key { font-style: normal; opacity: .68; }
+  /* 胶囊里的「层」前缀（用户 2026-11-12 定）：最小字号、更弱，只做归属提示不抢主文案 */
+  .var-chip .var-chip-layer { font-style: normal; font-size: 10px; opacity: .6; margin-right: 3px; }
   /* 查表判定「匹配值」静态胶囊容器（只读，无两态；chip/hl-err 复用全局样式） */
   .lg-match { flex: 1; min-width: 0; font-size: 12px; line-height: 1.6; padding: 3px 4px;
               white-space: pre-wrap; word-break: break-all; color: var(--text); }
@@ -514,6 +597,7 @@
   .var-ac-item.sel { background: rgba(41, 98, 255, .12); }
   .var-ac-item .ac-sys { color: #8a94a6; font-size: 11px; margin-left: 6px; }
   .var-ac-item .var-ac-key { font-style: normal; color: #8a94a6; font-size: 11px; margin-left: 2px; }
+  .var-ac-item .var-ac-layer { font-style: normal; color: #8a94a6; font-size: 10.5px; margin-right: 4px; }
   .var-ac-empty { padding: 8px 12px; color: #9aa3b2; }
   .out-query { display: flex; flex-direction: column; gap: 4px; width: 100%; min-width: 0; }
   .out-query .out-row { display: flex; align-items: center; gap: 6px; width: 100%; }
@@ -673,6 +757,12 @@
   .md-h3, .md-h4 { font-size: 14px; margin: 10px 0 4px; font-weight: 600; }
   .md-space { height: 1.5em; }
   blockquote { border-left: 3px solid var(--border2); padding: 2px 10px; color: var(--text2); margin: 6px 0; background: var(--bg2); border-radius: 0 4px 4px 0; }
+  /* ★markdown 行首缩进（制表符或 4 空格 = 1 级，渲染器按级挂 md-i1..md-i4；用户 2026-11-11 定）：
+     提示词逐字段声明的层次化写法靠它呈现层级；只动 padding，不改字号/行高/写回。 */
+  .md-i1 { padding-left: 24px; }
+  .md-i2 { padding-left: 48px; }
+  .md-i3 { padding-left: 72px; }
+  .md-i4 { padding-left: 96px; }
   .panel pre, .panel code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   .panel pre { background: var(--bg2); padding: 8px 10px; border-radius: 6px; overflow: auto; font-size: 12px; }
   .panel code { background: var(--bg2); padding: 0 4px; border-radius: 3px; font-size: 12px; }
@@ -693,6 +783,8 @@
   #stage-edit-box .btn.danger { margin-right: auto; }
   #stage-edit-box .stage-edit-form { margin-top: 14px; }
   #stage-edit-box .stage-edit-form .inp { margin-top: 0; }
+  /* 模式条行（2026-11-13 移入弹窗）：条本身 width:fit-content + margin auto 已居中，这里只管间距 */
+  #stage-edit-box #se-mode .mode-switch { margin: 2px auto 0; }
   /* ○实现细节：操作反馈 toast——fixed 右下角浮动，脱离工具栏文档流（文本出现/消失不影响任何按钮位置） */
   .toast { position: fixed; right: 16px; bottom: 16px; max-width: 60vw; padding: 8px 14px; border-radius: 8px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); z-index: 300; display: none; }
   .toast.show { display: block; }
