@@ -152,7 +152,7 @@ python3 server.py 8000
 
 | 文件 | 作用 |
 | --- | --- |
-| `RuleChainEditor.html` | 编辑器主体，单文件（约 6600 行），无框架、无构建（旧名 `Editor.html` 原位留符号链接） |
+| `RuleChainEditor.html` | 编辑器主体，单文件（约 6600 行），无框架、无构建（旧名 `Editor.html` 已弃用，兼容符号链接已移除） |
 | `Editor.css` / `theme.css` / `liquid-glass.css` | 样式与两套主题 |
 | `server.py` | 本地服务器：静态托管 + JSON 写回 + 覆盖前备份（仅标准库） |
 | `main-config.json` | 演示配置：采购申请单 → 付款单 |
