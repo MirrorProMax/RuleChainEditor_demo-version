@@ -186,16 +186,18 @@ def main():
             if extra:
                 E(f"{sk}（键映射）残留独占键 {sorted(extra)}（应只留「键映射」）")
 
-        # ⑦ 层序铁律（2026-11-13 用户定）：定义层的模式（短路表/提示词）的「输出字段」
-        #    必须单据头层在前、明细行层在后，两层字段不得交错——缺省（未声明键层）视同单据头。
-        if isinstance(out, dict) and out:
+        # ⑦ 层序（建议型规范，2026-11-13 用户定）：定义层的模式（短路表/提示词）的「输出字段」
+        #    建议单据头层在前、明细行层在后、两层字段不得交错——缺省（未声明键层）视同单据头。
+        #    ⚠ 只提示不阻断（W，非 E）：编辑器允许长按拖拽任意调整定义顺序，违规排序不作为硬闸；
+        #    违序 JSON 由 Editor 如实渲染（不自动重排、不拦保存）。仅定义层模式适用，透传型不查。
+        if m in ("短路表", "提示词") and isinstance(out, dict) and out:
             seen_detail = False
             for name, fd in out.items():
                 layer = (fd or {}).get("键层") or "单据头" if isinstance(fd, dict) else "单据头"
                 if layer == "明细行":
                     seen_detail = True
                 elif seen_detail:
-                    E(f"{sk}（{m}）输出字段「{name}」（单据头）排在明细行字段之后，违反层序铁律（单据头在前、明细行在后）")
+                    W(f"{sk}（{m}）输出字段「{name}」（单据头）排在明细行字段之后，与层序建议不一致（单据头在前、明细行在后；建议型，不阻断）")
 
     # ⑤ 键映射一致性
     for sk in keys:
