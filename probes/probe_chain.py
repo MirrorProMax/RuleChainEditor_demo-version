@@ -19,6 +19,8 @@
      上游输出字段声明 键层=明细行 的字段，改名条目应落在「明细行」桶。
   ⑥ 模式形态：过滤表 = 只写规则不写字段键；纯形态检测表 = 无输出字段、规则挂环节级；
      键映射 = 只有「键映射」改名表。
+  ⑦ 层序铁律（2026-11-13 用户定）：定义层的模式（短路表/提示词）输出字段必须
+     单据头层在前、明细行层在后，两层不得交错（缺省未声明键层视同单据头）。
 
 用法：python3 probes/probe_chain.py [main-config.json 路径]（缺省 = 仓库根 main-config.json）
 """
@@ -183,6 +185,17 @@ def main():
             extra = set(st.keys()) & {"输出字段", "规则"}
             if extra:
                 E(f"{sk}（键映射）残留独占键 {sorted(extra)}（应只留「键映射」）")
+
+        # ⑦ 层序铁律（2026-11-13 用户定）：定义层的模式（短路表/提示词）的「输出字段」
+        #    必须单据头层在前、明细行层在后，两层字段不得交错——缺省（未声明键层）视同单据头。
+        if isinstance(out, dict) and out:
+            seen_detail = False
+            for name, fd in out.items():
+                layer = (fd or {}).get("键层") or "单据头" if isinstance(fd, dict) else "单据头"
+                if layer == "明细行":
+                    seen_detail = True
+                elif seen_detail:
+                    E(f"{sk}（{m}）输出字段「{name}」（单据头）排在明细行字段之后，违反层序铁律（单据头在前、明细行在后）")
 
     # ⑤ 键映射一致性
     for sk in keys:
