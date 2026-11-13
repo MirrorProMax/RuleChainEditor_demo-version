@@ -23,10 +23,10 @@ cd 规则链编辑器_技术演示版
 python3 server.py 8000
 ```
 
-浏览器打开 <http://127.0.0.1:8000/Editor.html>
+浏览器打开 <http://127.0.0.1:8000/RuleChainEditor.html>
 
 `server.py` 提供静态托管 + JSON 写回 + 覆盖前自动备份。也可以直接用 Edge 打开
-`Editor.html`（`file://` 协议下写回走浏览器文件句柄；Chrome / Safari 受 CORS 限制，不推荐）。
+`RuleChainEditor.html`（`file://` 协议下写回走浏览器文件句柄；Chrome / Safari 受 CORS 限制，不推荐）。
 
 界面右下角可切换浅色 / 深色 / 自动主题。
 
@@ -152,7 +152,7 @@ python3 server.py 8000
 
 | 文件 | 作用 |
 | --- | --- |
-| `Editor.html` | 编辑器主体，单文件（约 6600 行），无框架、无构建 |
+| `RuleChainEditor.html` | 编辑器主体，单文件（约 6600 行），无框架、无构建（旧名 `Editor.html` 原位留符号链接） |
 | `Editor.css` / `theme.css` / `liquid-glass.css` | 样式与两套主题 |
 | `server.py` | 本地服务器：静态托管 + JSON 写回 + 覆盖前备份（仅标准库） |
 | `main-config.json` | 演示配置：采购申请单 → 付款单 |
