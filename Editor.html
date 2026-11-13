@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ══════════════════════════════════════════════════════════════════════════
-ShortCircuit 规则编辑器（通用版）· 单文件版
+规则链编辑器 RuleChain Editor（通用版）· 单文件版
 ══════════════════════════════════════════════════════════════════════════
 本编辑器的完整说明（定位 / 版本管理 / 零项目名原则 / 硬约束 / 分层结构 /
 JSON 顶层结构 / 两套 README 共存 / 三层契约对齐理念 / 短路表语义与环节链规范）见同目录 README.md。
@@ -15,7 +15,7 @@ JSON 顶层结构 / 两套 README 共存 / 三层契约对齐理念 / 短路表�
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShortCircuit 规则编辑器（通用）</title>
+<title>规则链编辑器 RuleChain Editor（通用）</title>
 <link rel="stylesheet" href="Editor.css">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="liquid-glass.css">
@@ -46,7 +46,7 @@ JSON 顶层结构 / 两套 README 共存 / 三层契约对齐理念 / 短路表�
 <div class="liquid-bg" aria-hidden="true"></div>
 
 <div class="topbar">
-  <h1 id="appTitle" ondblclick="editAppTitle()" title="ShortCircuit 规则编辑器（双击编辑标题）">ShortCircuit 规则编辑器</h1>
+  <h1 id="appTitle" ondblclick="editAppTitle()" title="规则链编辑器（双击编辑标题）">规则链编辑器</h1>
   <span id="verLagBadge" class="ver-lag" style="display:none" title="JSON 顶层「编辑器版本号」缺失或落后于编辑器格式版本。请由 Agent 做格式对齐并更新该字段；未对齐前 Engine 会拒绝执行">JSON格式版本落后于Editor</span>
   <span class="spacer"></span>
   <button id="editLockBtn" class="btn" onclick="toggleEditLock()" title="当前只读：不能拖动、双击改名、删除或改动任何规则/静态数据/文档。点击进入编辑状态">🔒 只读 · 开始编辑</button>
@@ -114,7 +114,7 @@ JSON 顶层结构 / 两套 README 共存 / 三层契约对齐理念 / 短路表�
    ═══ 0. 常量与枚举 ═══  模式键 / MODE_OWN / 算子·输出枚举 / 键名常量 / 边界 key / 规范正文
    ════════════════════════════════════════════════════════════════════════ */
 
-  const SCHEMA_MD = `# ShortCircuit 规则编辑器 · JSON 格式规范 V2
+  const SCHEMA_MD = `# 规则链编辑器（RuleChain Editor）· JSON 格式规范 V2
 
 ## 顶层结构
 | 键 | 必填 | 说明 |
@@ -5470,7 +5470,7 @@ function newConfig() {
   setConfig({
     "schemaVersion": "V2",
     "编辑器版本号": EDITOR_FORMAT_VERSION,
-    "标题": "新建 ShortCircuit 配置（未命名）",
+    "标题": "新建规则链配置（未命名）",
     "版本": "v1.0.0",
     "说明": "在「格式说明」里查看 JSON 规范；环节/静态表按需添加。",
     "文档": [{ "名称": "项目README", "内容": "> ★ 两套 README 共存说明：本份文档（顶层「文档」集合第 1 份）= **项目README**，描述本项目转换口径 / SOP。\n> 另一套是 **编辑器README** = Editor.html 同目录 README.md。\n> 当你说「README」未指明时，我会先问你指的是哪一套。\n\n# 项目 README\n\n在此填写本项目的 SOP / 流程说明（markdown）。\n\n## 总流程\n1. 环节1：输入文件 → 标准数据\n2. …\n\n## 铁律\n- …" }],
@@ -5497,9 +5497,9 @@ function setConfig(obj) {
   REDO_STACK = [];
   OP_LOG = [];
   if (migratedDocs) log("文档集合迁移", "顶层 README.md → 文档[0]「项目README」（仅内存，未写盘）");
-  document.getElementById("appTitle").textContent = obj["标题"] || "ShortCircuit 规则编辑器";
+  document.getElementById("appTitle").textContent = obj["标题"] || "规则链编辑器";
   refreshVersionUI();   // 「⋯」菜单版本两行 + 编辑器版本号落后红标（原顶栏 verBadge 已并入菜单）
-  document.title = obj["标题"] || "ShortCircuit 规则编辑器";
+  document.title = obj["标题"] || "规则链编辑器";
   // 默认选中第一个环节：环节级（检测表）模式无字段，否则选中第一个输出字段
   const logic = (obj["转换逻辑"] || {});
   curStage = stageKeys().find(k => logic[k]) || "";
@@ -5549,7 +5549,7 @@ function editAppTitle() {
       log("重命名标题", old + " → " + v);
       scheduleSave();
     }
-    const shown = CONFIG["标题"] || "ShortCircuit 规则编辑器";
+    const shown = CONFIG["标题"] || "规则链编辑器";
     h.textContent = shown;
     document.title = shown;
   };

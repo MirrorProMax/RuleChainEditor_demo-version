@@ -1,4 +1,4 @@
-# 短路表规则编辑器（ShortCircuit Editor）
+# 规则链编辑器（RuleChain Editor）
 
 一个把「异构系统之间的单据转换规则」做成可视化配置的单文件 Web 编辑器。
 
