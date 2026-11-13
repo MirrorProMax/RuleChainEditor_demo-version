@@ -125,7 +125,7 @@ JSON 顶层结构 / 两套 README 共存 / 三层契约对齐理念 / 短路表�
 | 标题 | ★ | 编辑器标题（顶栏 + 浏览器标签页） |
 | 版本 | ★ | 配置版本（⋯「更多」菜单内显示） |
 | 说明 | ◇ | 一句话描述 |
-| 字段中文名 | ◇ | 英文字段 → 中文显示名（表头/下拉用）：{英文字段: 中文名}；缺省则原样显示对象键 |
+| 字段键别名 | ◇ | 英文字段 → 中文显示名（表头/下拉用）：{英文字段: 键别名}；缺省则原样显示对象键 |
 | 文档 | ★ | 文档集合（有序数组 [{名称, 内容}]）：第 1 份一般为项目README，后续放各 API 文档（同层存储）；左栏「文档」区可增减 / 改名 / 编辑内容 / 按住上下拖动调整顺序（数组顺序即显示序，见 #46）；正文为混合渲染编辑器：平时渲染成形，光标所在块就地显示 Markdown 源码，未改动的块原文无损写回，见「#41」） |
 | 文件 | ◇ | {输入文件, 输出文件, 描述, 输出?} —— 环节1 输入、最后环节输出；输出={列, 中文表头, 排序, 序号} |
 | 静态数据 | ◇ | 静态表字典（**本地静态映射**：行内嵌在本 JSON、在编辑器里直接改；需要 Excel 时由脚本从本区导出）：{表名: {表头, 行, 只读列?, lookup?}} |
@@ -242,7 +242,7 @@ function isEndKey(k) { return END_KEYS.includes(k); }
      缺失或落后 → ① 顶栏「重新加载JSON」左侧红标提示；② Engine 启动即报错拒绝执行（见 README「格式版本号规范」），
      后续由 Agent 介入做格式对齐。Editor 渲染/保存**不会自动 bump** JSON 里的该字段（只有对齐后由人/Agent 更新），
      否则红标会在未对齐的情况下消失，失去提示意义。 */
-const EDITOR_FORMAT_VERSION = "V8.2";  // V8.2：输出字段层序规范（2026-11-13，用户定；同日下调为建议型）——定义层的模式（短路表/提示词）输出字段建议单据头在前、明细行在后、不交错（缺省视同单据头）；仅排列建议、不改语义，Editor 对违序 JSON 如实渲染、不重排不拦截，可长按拖拽自行调整顺序；小数位 bump、JSON 结构零变化。2026-11-13：模式「键映射」界面更名「键映射表」（纯 UI 微调、按 bump 原则不 bump，JSON 内部值与独占键不变）；同日术语定名——界面与文档「字段名/字段名称」统一改称「中文名」（键不变），目的让中文名明确从属于键，纯用语调整、JSON 结构零变化、不 bump。V8.1：键映射层列只读（2026-11-13，用户定）——层只在输出字段定义处声明（短路表/提示词重新定义输出字段时声明），键映射属透传型环节只继承；面板层列改只读、改层入口（commitKeyLayer）移除，改名条目一律落继承层的桶。JSON 结构零变化，实例 JSON「编辑器版本号」对齐随结构类对齐动作一并推进。V8：键层贯穿（2026-11-12，用户定；需求表 #85）——输出字段定义新增可选键 "键层": "单据头"|"明细行"（缺省单据头、缺省不落盘），键的报文层归属在键诞生处声明、贯穿整套流程；键映射未改名行层 = 沿上游键层声明，首次改名沿用上游层；键映射两桶结构不变（V7）。实例侧对齐：顶层「编辑器版本号」→ "V8"，引擎版本白名单同批升（只改一边会拒跑）。V7：键映射分层（2026-11-12，用户定；专项需求表 #2013）——独占键「键映射」由扁平改名表 {字段名:目标键名} 改为按层分桶 {单据头:{…},明细行:{…}}；桶内只存改名项（没改名的不写），层 = 这次改名落在报文哪一层；同层同目标键才算重复、跨层同键合法；旧扁平格式加载时内存迁移为「全部归单据头」（不写盘）。实例侧对齐：键映射环节改写成两桶 + 顶层「编辑器版本号」→ "V7"，且 Engine 的 SUPPORTED_EDITOR_FORMAT_VERSION 必须同批升 V7（只改一边会拒跑）。V6：键映射更名（2026-11-11，用户定；需求表 #74）——模式值与独占键 "Key映射" → "键映射"（枚举/字段约定变更，整数位 bump）；Editor 加载时内存迁移旧值，实例侧 JSON 对齐动作：把键映射环节的 "模式":"Key映射" 与独占键 "Key映射" 改为 "键映射"，然后把顶层「编辑器版本号」更新为 "V6"。V5.2：输入字段铁律（2026-11-11，用户定；需求表 #71）——环节输入字段 ≡ 上一环节「输出字段」（完全相等含顺序），上游无输出字段定义则输入为空；「输入字段」存储键废弃不读，存量由实例侧清理。V5.1：提示词逐字段声明层次化写法规范（2026-11-11，用户定；需求表 #68/#69）——特殊规则第一板块 A 节：字段名/键/逻辑首行顶格，缩进仅用于逻辑分支（如果…则：顶格、分支体缩进1级、否则随层级递进），存量提示词环节文案由实例侧对齐改写（已定调弱规范、改写自愿）；配套渲染器支持行首缩进可见（md-i1..4）。V5：查表判定条件规范收紧（2026-11-07，用户定）——条件元素 {字段, 查表:{...}} 必须带「字段」键（渲染进所属字段列，不设独立列）；「匹配」恒为 [字段] 自动生成、不可手写；「存在检查」必须为 true，「不存在」=true 即「未查到」（界面为 查到/未查到 单选器）。V4：静态表序号规范变更（2026-11-06，需求表 #36）——序号 Editor 独立渲染、不写入 JSON、不建议维护；存量旧「序号」列由 Editor 兼容隐藏让位。实例侧 JSON 应对齐后更新「编辑器版本号」
+const EDITOR_FORMAT_VERSION = "V8.2";  // V8.2：输出字段层序规范（2026-11-13，用户定；同日下调为建议型）——定义层的模式（短路表/提示词）输出字段建议单据头在前、明细行在后、不交错（缺省视同单据头）；仅排列建议、不改语义，Editor 对违序 JSON 如实渲染、不重排不拦截，可长按拖拽自行调整顺序；小数位 bump、JSON 结构零变化。2026-11-13：模式「键映射」界面更名「键映射表」（纯 UI 微调、按 bump 原则不 bump，JSON 内部值与独占键不变）；同日术语定名——界面与文档「字段名/字段名称」统一改称「键别名」（键不变），目的让键别名明确从属于键，纯用语调整、JSON 结构零变化、不 bump；次日（2026-11-14）再定「键别名」→「键别名」（「别名」词义自带从属，键别名在英文键场景覆盖不准；JSON 结构键「字段键别名」与存量兼容键「键别名」保留不改），仍纯用语调整、不 bump。V8.1：键映射层列只读（2026-11-13，用户定）——层只在输出字段定义处声明（短路表/提示词重新定义输出字段时声明），键映射属透传型环节只继承；面板层列改只读、改层入口（commitKeyLayer）移除，改名条目一律落继承层的桶。JSON 结构零变化，实例 JSON「编辑器版本号」对齐随结构类对齐动作一并推进。V8：键层贯穿（2026-11-12，用户定；需求表 #85）——输出字段定义新增可选键 "键层": "单据头"|"明细行"（缺省单据头、缺省不落盘），键的报文层归属在键诞生处声明、贯穿整套流程；键映射未改名行层 = 沿上游键层声明，首次改名沿用上游层；键映射两桶结构不变（V7）。实例侧对齐：顶层「编辑器版本号」→ "V8"，引擎版本白名单同批升（只改一边会拒跑）。V7：键映射分层（2026-11-12，用户定；专项需求表 #2013）——独占键「键映射」由扁平改名表 {字段名:目标键名} 改为按层分桶 {单据头:{…},明细行:{…}}；桶内只存改名项（没改名的不写），层 = 这次改名落在报文哪一层；同层同目标键才算重复、跨层同键合法；旧扁平格式加载时内存迁移为「全部归单据头」（不写盘）。实例侧对齐：键映射环节改写成两桶 + 顶层「编辑器版本号」→ "V7"，且 Engine 的 SUPPORTED_EDITOR_FORMAT_VERSION 必须同批升 V7（只改一边会拒跑）。V6：键映射更名（2026-11-11，用户定；需求表 #74）——模式值与独占键 "Key映射" → "键映射"（枚举/字段约定变更，整数位 bump）；Editor 加载时内存迁移旧值，实例侧 JSON 对齐动作：把键映射环节的 "模式":"Key映射" 与独占键 "Key映射" 改为 "键映射"，然后把顶层「编辑器版本号」更新为 "V6"。V5.2：输入字段铁律（2026-11-11，用户定；需求表 #71）——环节输入字段 ≡ 上一环节「输出字段」（完全相等含顺序），上游无输出字段定义则输入为空；「输入字段」存储键废弃不读，存量由实例侧清理。V5.1：提示词逐字段声明层次化写法规范（2026-11-11，用户定；需求表 #68/#69）——特殊规则第一板块 A 节：字段名/键/逻辑首行顶格，缩进仅用于逻辑分支（如果…则：顶格、分支体缩进1级、否则随层级递进），存量提示词环节文案由实例侧对齐改写（已定调弱规范、改写自愿）；配套渲染器支持行首缩进可见（md-i1..4）。V5：查表判定条件规范收紧（2026-11-07，用户定）——条件元素 {字段, 查表:{...}} 必须带「字段」键（渲染进所属字段列，不设独立列）；「匹配」恒为 [字段] 自动生成、不可手写；「存在检查」必须为 true，「不存在」=true 即「未查到」（界面为 查到/未查到 单选器）。V4：静态表序号规范变更（2026-11-06，需求表 #36）——序号 Editor 独立渲染、不写入 JSON、不建议维护；存量旧「序号」列由 Editor 兼容隐藏让位。实例侧 JSON 应对齐后更新「编辑器版本号」
 function parseFormatVersion(s) { const m = String(s ?? "").match(/\d+(?:\.\d+)?/); return m ? parseFloat(m[0]) : 0; }  // ★支持小数位：整数位=结构变更、小数位=规范/约定收紧（用户 2026-11-11 定）
 function jsonEditorVerLags() {
   return parseFormatVersion(CONFIG && CONFIG["编辑器版本号"]) < parseFormatVersion(EDITOR_FORMAT_VERSION);
@@ -343,7 +343,7 @@ const OP_COLORS = {
 };
 function opColor(op) { return OP_COLORS[op] || "#8a8a8a"; }
 
-/* 英文字段 → 中文名（表头/下拉显示用，存储仍用英文字段名）
+/* 英文字段 → 键别名（表头/下拉显示用，存储仍用英文字段名）
    ★通用原则：编辑器不内置任何项目的字段字典 —— 不同项目的字段名只存在于各自的 JSON。
      取值顺序：fieldDesc（上游输出字段的「说明」）→ 配置顶层可选区「字段中文名」→ 原样显示对象键。 */
 function fieldDisplay(f) {
@@ -1989,9 +1989,9 @@ function fieldTabsHTML(stageKey, editable) {
     const desc = fd["说明"] || "";
     let main, sub;
     // ★统一口径（与规则表列头 condHeadHTML、条件字段菜单 fieldMenuLabel 同源）：
-    //   输出字段卡片 = hstack(序号, vstack(层, 中文名, 键))。
+    //   输出字段卡片 = hstack(序号, vstack(层, 键别名, 键))。
     //   首行=层（单据头/明细行，#2013 键层贯穿，用户 2026-11-12 定「凡渲染名+键处都带层」）。
-    //   中行=中文名：中文键用键本身；英文键取跨环节「输出字段[f].中文名」/顶层「字段中文名」，缺才回退键本身。
+    //   中行=键别名：中文键用键本身；英文键取跨环节「输出字段[f] 的键别名（存量 JSON 键「中文名」，兼容读取）」/顶层配置区「字段中文名」，缺才回退键本身。
     //     ⚠ 中行不能直接放键（api_key_name）：英文键的对象键往往就是键本身，会把中行也渲染成键。
     //   末行=键（本环节声明优先，缺则跨环节回退）；与中行同值时留空占位，
     //     避免中行与键行同文案重复（环节6 的 12 个英文键字段即属此情形）。
@@ -2001,7 +2001,7 @@ function fieldTabsHTML(stageKey, editable) {
     main = isCn ? f : (shortName || f);
     const ak = fd["api_key_name"] || fieldApiKey(f);
     sub = (ak && ak !== main) ? ak : "";
-    /* 层（用户 2026-11-12 定：凡渲染「中文名+键」处一并渲染「层」）：本环节键映射表改名条目所在桶优先，
+    /* 层（用户 2026-11-12 定：凡渲染「键别名+键」处一并渲染「层」）：本环节键映射表改名条目所在桶优先，
        否则本环节输出字段的「键层」声明，缺省单据头（与 kmRows 同源）。 */
     const ent = kmEntry(CONFIG["转换逻辑"][stageKey], f);
     const layer = ent.target ? ent.layer : outFieldLayer(fd);
@@ -2295,12 +2295,12 @@ function renderPromptStagePanel(panel, stage) {
 /* ★设计标准（#29 / #30 / 双向一致 / 表头+键）：提示词模式环节（含开始环节「阶段0_开始」）在 markdown 正文下方显式陈列
    「输出字段区」——本环节向后续环节传递的字段清单，与下游输入条件字段一致（上游输出定义下游输入，不另起第二套）。
    结束环节（阶段99_结束）无后续环节可传，按 #30 明确排除，不渲染该区。
-   区为表格化：共用表头（中文名 / 键 / 说明）+ 每行 删除。
-     · 中文名 = 环节对象["输出字段"] 的 key（键的中文名；2026-11-13 定名「中文名」，原「字段名」用语废止。现版本对象键即中文名，独立「中文名」属性早已并入不再单列；V9 改轨后对象键=键、中文名降为对象内属性），可改名（同步规则内变量引用）。
-     · 键 = 出口侧接口键名元数据（defs[key]["api_key_name"]）；目标口径是「取值一律靠键」（V9 改轨，见 README 铁律节），当前实现引擎仍以对象键（中文名）取值，键由出口消费方（如制单报文组装）翻译。
+   区为表格化：共用表头（键别名 / 键 / 说明）+ 每行 删除。
+     · 键别名 = 环节对象["输出字段"] 的 key（键的别名；定名沿革 2026-11-13「字段名」→「键别名」→ 2026-11-14「键别名」。现版本对象键即键别名，历史独立属性 JSON 键「键别名」仍兼容读取不再单列写入；V9 改轨后对象键=键、键别名降为对象内属性），可改名（同步规则内变量引用）。
+     · 键 = 出口侧接口键名元数据（defs[key]["api_key_name"]）；目标口径是「取值一律靠键」（V9 改轨，见 README 铁律节），当前实现引擎仍以对象键（键别名）取值，键由出口消费方（如制单报文组装）翻译。
      · 键层 = defs[key]["键层"]（V8，可选，缺省单据头、缺省不落盘）：键的报文层归属在输出字段定义处声明，贯穿整套流程。
      · 说明 = defs[key]["说明"]，是下游输入字段悬停时应呈现的提示（备注，仅 hover）。
-   数据直接挂在 环节对象["输出字段"]（中文名 → {规则:[{输出:{类型:变量,字段}}], api_key_name, 说明}）。 */
+   数据直接挂在 环节对象["输出字段"]（键别名 → {规则:[{输出:{类型:变量,字段}}], api_key_name, 说明}）。 */
 let outDefFocusDirty = false;
 function outDefOnFocus() { outDefFocusDirty = false; }
 /* ★「输入字段」选项卡（2026-11-11 用户定）：提示词模式只读检视上一环节传入的字段。
@@ -2328,7 +2328,7 @@ function renderInputFieldsView(stageKey) {
   const upIsKeyMap = upKey && isKeyMapStage(upKey);
   const upStageObj = upIsKeyMap ? (CONFIG["转换逻辑"][upKey] || {}) : null;
   let h = '<div class="outdef-block">';
-  h += '<table class="outdef-table ifview-table"><thead><tr><th>键层</th><th>中文名</th><th>键</th><th>说明</th></tr></thead>';
+  h += '<table class="outdef-table ifview-table"><thead><tr><th>键层</th><th>键别名</th><th>键</th><th>说明</th></tr></thead>';
   if (!fields.length) {
     h += '<tbody><tr><td class="outdef-empty" colspan="4">（上一环节无「输出字段」定义，本环节输入字段为空）</td></tr></tbody>';
   } else {
@@ -2359,11 +2359,11 @@ function renderOutputFieldDefs(stage) {
   //   故留一列 16px 的抓手位（⋮⋮、无文字、不可聚焦、只读态隐藏只占位）作为长按拖拽的起点。
   //   拖拽只改「输出字段」对象的键顺序，见 lpDragDown。
   let h = '<div class="outdef-block">';
-  h += '<table class="outdef-table outdef-def-table"><thead><tr><th class="outdef-grip-col"></th><th>键层</th><th>中文名</th><th>键</th><th>说明</th><th></th></tr></thead>';
+  h += '<table class="outdef-table outdef-def-table"><thead><tr><th class="outdef-grip-col"></th><th>键层</th><th>键别名</th><th>键</th><th>说明</th><th></th></tr></thead>';
   if (!keys.length) {
     h += '<tbody><tr><td class="outdef-empty" colspan="6">（暂无，点击「+ 添加字段」定义本环节输出字段）</td></tr></tbody>';
   } else {
-    /* ★同层重复警示（用户 2026-11-13 定）：中文名 / 键 只在「同层」内判重——层不同不算重复。
+    /* ★同层重复警示（用户 2026-11-13 定）：键别名 / 键 只在「同层」内判重——层不同不算重复。
        键为空（未标注）不参与判重：那是「未定义」不是「重复」，避免一堆空键互相误伤。 */
     const nameCnt = {}, keyCnt = {};
     keys.forEach(k => {
@@ -2622,7 +2622,7 @@ function reorderOutputFields(fromKey, toKey, placeBefore, pool) {
   renderPanel(); scheduleSave();
 }
 
-/* 双击编辑弹窗：中文名 / 键 / 说明（独立「中文名」属性已并入对象键，不再单列）；底部「删除」再走 openConfirm 二次确认 */
+/* 双击编辑弹窗：键别名 / 键 / 说明（独立「键别名」属性已并入对象键，不再单列）；底部「删除」再走 openConfirm 二次确认 */
 function closeFieldEditDialog() {
   const m = document.getElementById("field-edit-mask"), b = document.getElementById("field-edit-box");
   if (b && b.__onKey) document.removeEventListener("keydown", b.__onKey);
@@ -2645,7 +2645,7 @@ function openFieldEditDialog(key) {
   box.innerHTML = `<div class="field-edit-title">编辑输出字段</div>`
     + `<div class="field-edit-form">`
     + `<label>键层</label><select class="inp" id="fe-layer">${layerOpts}</select>`
-    + `<label>中文名</label><input class="inp" id="fe-name" value="${escAttr(key)}">`
+    + `<label>键别名</label><input class="inp" id="fe-name" value="${escAttr(key)}">`
     + `<label>键</label><input class="inp" id="fe-ak" value="${escAttr(fd["api_key_name"] || "")}">`
     + `<label>说明</label><input class="inp" id="fe-desc" value="${escAttr(fd["说明"] || "")}">`
     + `</div>`
@@ -2674,8 +2674,8 @@ function applyFieldEdit(oldKey, vals) {
   const st = CONFIG["转换逻辑"][curStage], defs = st && st["输出字段"];
   if (!defs || !defs[oldKey]) return;
   const name = (vals.name || "").trim();
-  if (!name) { setAutoHint("中文名不能为空"); return; }
-  if (name !== oldKey && defs[name]) { setAutoHint("中文名「" + name + "」已存在"); return; }
+  if (!name) { setAutoHint("键别名不能为空"); return; }
+  if (name !== oldKey && defs[name]) { setAutoHint("键别名「" + name + "」已存在"); return; }
   pushChainSnapshot(UNDO_STACK);
   const obj = defs[oldKey];
   obj["api_key_name"] = vals.ak || "";
@@ -2863,7 +2863,7 @@ function keyMapPanelHTML(stage) {
   const sk = curStage;
   const rows = kmRows(sk);
   // ★冻结表头（用户 2026-11-12 定）：与规则表同一套布局——表格进单一滚动体，thead sticky top 0 钉住；
-  //   明细行多时只滚表体，列头（#/层/输入中文名/输入键/目标键）恒在视口顶。
+  //   明细行多时只滚表体，列头（#/层/输入键别名/输入键/目标键）恒在视口顶。
   //   （模式条已移入双击环节的编辑弹窗，2026-11-13 用户定：面板不放切换条防误触，冻结头留空。）
   const head = "";
   /* ★重复标黄（#2013 改口径，用户 2026-11-12 定）：按「同层 + 同生效目标键（改名值 || 沿用上游键 || 对象键）」
@@ -2878,7 +2878,7 @@ function keyMapPanelHTML(stage) {
 
   let h = '<table class="km-table"><thead><tr>'
     + '<th class="km-idx">#</th><th style="width:96px">层</th>'
-    + '<th style="width:19%">输入中文名</th><th style="width:25%">输入键</th><th>目标键</th>'
+    + '<th style="width:19%">输入键别名</th><th style="width:25%">输入键</th><th>目标键</th>'
     + '</tr></thead><tbody>';
   if (!rows.length) {
     h += '<tr><td colspan="5" class="km-empty">上一环节无输出字段，无可映射的明细行</td></tr>';
@@ -3105,9 +3105,9 @@ function lookupGateBlockHTML(ri, ci, c, fields) {
     h += `</select></label>`;
     h += `<div class="fld-cond-warn">⚠️ 未关联字段：V5 规范要求查表判定必须关联字段，请选择上方「关联字段」</div>`;
   }
-  // 匹配值只读：静态胶囊（varPreviewHTML 渲染「中文名:键」，非法引用红底）；不可编辑、不可进编辑态
+  // 匹配值只读：静态胶囊（varPreviewHTML 渲染「键别名:键」，非法引用红底）；不可编辑、不可进编辑态
   const mvShown = expect || lut["匹配"] || "";
-  h += `<label class="cl-row"><span>匹配值</span><span class="lg-match" title="匹配值恒为 [关联字段]，自动生成、不可手动修改；变量显示为「中文名:键」">${mvShown ? varPreviewHTML(mvShown, fields || []) : ""}</span></label>`;
+  h += `<label class="cl-row"><span>匹配值</span><span class="lg-match" title="匹配值恒为 [关联字段]，自动生成、不可手动修改；变量显示为「键别名:键」">${mvShown ? varPreviewHTML(mvShown, fields || []) : ""}</span></label>`;
   if (bound && (lut["匹配"] || "") !== expect) {
     h += `<div class="fld-cond-warn">⚠️ 匹配值与关联字段不一致（现为 ${escHtml(lut["匹配"] || "空")}）：V5 规范匹配值恒为 [字段]，重选关联字段可自动重写</div>`;
   }
@@ -3244,7 +3244,7 @@ function fieldApiKey(f) {
   }
   return "";
 }
-/* 字段「层」查询（用户 2026-11-12 定：凡渲染「中文名+键」之处都要一并渲染「层」）：
+/* 字段「层」查询（用户 2026-11-12 定：凡渲染「键别名+键」之处都要一并渲染「层」）：
    取法与 kmRows 同源——上游环节该字段键映射表的改名条目所在桶优先，否则该环节输出字段的「键层」声明，
    全链未声明 → 单据头缺省。取值只读，不改配置。 */
 function fieldLayer(f) {
@@ -3258,7 +3258,7 @@ function fieldLayer(f) {
   }
   return KM_DEFAULT_BUCKET;
 }
-/* 字段短中文名（表头主行用）：跨环节「输出字段[f].中文名」→ 顶层「字段中文名」→ ""（空=用原键）。
+/* 字段短键别名（表头主行用）：跨环节「输出字段[f] 的键别名（存量 JSON 键「中文名」）」→ 顶层配置区「字段中文名」→ ""（空=用原键）。
    ⚠ 刻意不取「说明」(fieldDesc)：说明是长句（如「company_id 兜底值（无付款账号时用）…」），
      只能作 hover 提示，不能当表头标题，否则整句塞进列头会把表格撑乱（用户报的『标签有问题』之一）。 */
 function fieldShortName(f) {
@@ -3269,10 +3269,10 @@ function fieldShortName(f) {
   }
   return ((CONFIG && CONFIG["字段中文名"]) || {})[f] || "";
 }
-/* 规则表 · 中栏表头某条件列：三行紧凑 vstack（层 在上 / 短中文名 在中 / 键 在下），『说明』严格仅 hover。
+/* 规则表 · 中栏表头某条件列：三行紧凑 vstack（层 在上 / 短键别名 在中 / 键 在下），『说明』严格仅 hover。
    ★统一口径（与菜单 fieldMenuLabel、输出字段选项卡栏 fieldTabsHTML 同源）：
      首行 = 层（单据头 / 明细行，让用户一眼看出这个键属于报文哪一层，#2013 键层贯穿）；
-     中行 = 中文字段用键本身；英文字段取跨环节「中文名」/「字段中文名」，缺则原键；
+     中行 = 中文字段用键本身；英文字段取跨环节键别名（存量 JSON 键「中文名」）/「字段中文名」，缺则原键；
      末行 = 键（fieldApiKey 跨环节取）；说明（长句）只作 hover 提示。
    ⛔ 关键约束：data-tip / onmouseenter / onmouseleave 等属性必须拼进 <th> 开标签，
       绝不能落在单元格内容区——早期版本把提示串放在 </th> 前的内容里，导致
@@ -3281,7 +3281,7 @@ function fieldShortName(f) {
 function condHeadHTML(f, prevOut, stageLevelMode) {
   const isCn = /[\u4e00-\u9fa5]/.test(f);
   const shortName = fieldShortName(f);
-  const main = isCn ? f : (shortName || f);      // 中行：中文键=对象键本身；英文键=中文名（缺则原样）
+  const main = isCn ? f : (shortName || f);      // 中行：中文键=对象键本身；英文键=键别名（缺则原样）
   const ak = fieldApiKey(f);
   const sub = (ak && ak !== main) ? ak : "";      // 末行 = 键
   const layer = fieldLayer(f);                    // 首行 = 层（恒有值，缺省单据头）
@@ -3617,7 +3617,7 @@ function outVarHTML(out, ri) {
   return `<div class="out-var">`
     + `<div class="var-wrap${invalid ? ' invalid' : ''}">`
     + `<div class="var-preview" tabindex="0" data-ph="[字段]+加工 或 文本混排（如 [销售日期]-1 / 日期=[销售日期]）" `
-    + `title="点击进入编辑；变量显示为「中文名:键」，存储仍为 [字段名]" `
+    + `title="点击进入编辑；变量显示为「键别名:键」，存储仍为 [字段名]" `
     + `onclick="varPreviewEdit(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();varPreviewEdit(this);}"`
     + `>${varPreviewHTML(shown, fields)}</div>`
     + `<div class="var-hl">${varOverlayHTML(shown, fields)}</div>`
@@ -3628,9 +3628,9 @@ function outVarHTML(out, ri) {
     + `</div>`
     + `</div>`;
 }
-/* ★变量令牌预览（2026-11-07，用户定）：失焦态把 [引用] 渲染成「中文名:键」胶囊，编辑态仍是原文输入。
+/* ★变量令牌预览（2026-11-07，用户定）：失焦态把 [引用] 渲染成「键别名:键」胶囊，编辑态仍是原文输入。
    两态模型与 md 混合编辑器一致：预览态=胶囊渲染，编辑态=原文+补全+镜像标红。存储不变（[字段名]），引擎零改动。
-   key 取上游输出字段 api_key_name（fieldApiKey 遍历环节链）；无键的字段只显示中文名。 */
+   key 取上游输出字段 api_key_name（fieldApiKey 遍历环节链）；无键的字段只显示键别名。 */
 function varPreviewHTML(text, fields) {
   const t = text || "";
   let html = "", last = 0, m;
@@ -3657,7 +3657,7 @@ function varPreviewHTML(text, fields) {
 }
 /* ★变量两态输入通用件（2026-11-07 用户定「统一渲染规范」）：
    凡引擎真实支持 [字段] 引用替换的输入位（输出·查表匹配值 / 条件内嵌查表匹配值 / 报异常说明 / 检测表说明），
-   与输出·变量（outVarHTML）统一两态呈现：失焦=预览态胶囊「中文名:键」（varPreviewHTML），聚焦=原文编辑。
+   与输出·变量（outVarHTML）统一两态呈现：失焦=预览态胶囊「键别名:键」（varPreviewHTML），聚焦=原文编辑。
    存储不变、引擎零改动。
    write = onchange 表达式（this.value 占位）；blur 兜底写回复用同一表达式（this.value→_ev 存入 data-write）。
    multiline=长文本用 textarea（编辑态无镜像红标层；预览态红底胶囊照常）。
@@ -3670,7 +3670,7 @@ function varFieldHTML(value, write, opts) {
   const invalid = [...v.matchAll(/\[([^\]]*)\]/g)].some(m => m[1] && !isVarName(m[1].trim(), fields));
   const writeEv = String(write).replace(/this\.value/g, "_ev");
   const pvAttrs = `tabindex="0" data-ph="${escAttr(ph)}" `
-    + `title="点击进入编辑；变量显示为「中文名:键」，存储仍为 [字段名]" `
+    + `title="点击进入编辑；变量显示为「键别名:键」，存储仍为 [字段名]" `
     + `onclick="varPreviewEdit(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();varPreviewEdit(this);}"`;
   const pv = `<div class="var-preview" ${pvAttrs}>${v ? varPreviewHTML(v, fields) : ""}</div>`;
   if (opts.multiline) {
